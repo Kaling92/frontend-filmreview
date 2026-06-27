@@ -4,25 +4,23 @@ import 'bootstrap/dist/css/bootstrap.min.css'
 import Container from 'react-bootstrap/Container'
 import Nav from 'react-bootstrap/Nav'
 import Navbar from 'react-bootstrap/Navbar'
-import NavDropdown from 'react-bootstrap/NavDropdown'
 import { Link, Route, Routes } from 'react-router-dom'
 import MoviesList from './components/movies-list'
 import Movie from './components/movies'
 import AddReview from './components/add-reviews'
-import Login from './components/login'
+import Login, { type LoginFormData } from './components/login'
+
+
 
 type User = LoginFormData;
 type UserState = User | null;
 
 function App() {
-const [user, setUser] = useState<UserState>(null);
+  const [user, setUser] = useState<UserState>(null);
 
-function login(data: User) {
-setUser(data);
-}
-function logout() {
-setUser(null);
-}
+  function login(data: User) {
+    setUser(data);
+  }
   return (
     <div className="App">
       <Navbar expand="lg" className="bg-body-tertiary">
@@ -45,8 +43,10 @@ setUser(null);
         <Route path="/movies/:id" element={<Movie user={user} />} />
         <Route path="/login" element={<Login login={login} />} />
       </Routes>
-    </div>
+
+      </div>
   )
 }
+
 
 export default App
