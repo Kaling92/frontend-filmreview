@@ -166,8 +166,7 @@ const MoviesList = () => {
                                 </Card.Body>
                             </Card>
                         </Col>
-                    ))
-                }
+                    ))}
             </Row>
 
             {movies.length > 0 && (
