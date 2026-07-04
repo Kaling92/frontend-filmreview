@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3000';
+const API_URL =import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 export type ReviewPayload = {
     movie_id?: string;
@@ -59,7 +59,7 @@ export const MovieDataService = {
 
     async deleteReview(id: string, userId: string) {
         try {
-            return await axios.delete(`$(API_URL}/api/v1/movies/review`, {
+            return await axios.delete(`${API_URL}/api/v1/movies/review`, {
                 data: {
                     review_id: id,
                     user_id: userId,

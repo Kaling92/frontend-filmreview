@@ -23,6 +23,11 @@ type MoviesResponse = {
     entries_per_page: number;
 };
 
+type AppliedSearch =
+| { mode: ""; title: ""; rating: "" }
+| { mode : "findByTitle"; title: string; rating: "" }
+| { mode: "findByRating"; title: ""; rating: string };
+
 const MoviesList = () => {
     const [movies, setMovies] = useState<MovieListItem[]>([]);
     const [searchTitle, setSearchTitle] = useState<string>("");
@@ -30,6 +35,8 @@ const MoviesList = () => {
     const [ratings, setRatings] = useState<string[]>(["All Ratings"]);
 
     const [currentPage, setCurrentPage] = useState<number>(0);
+    const [entriesPerPage, setEntriesPerPage] = useState<number>(0);
+    const [appliedSearch, setAppliedSearch] = useState<AppliedSearch>({ mode: "", title: "", rating: "" });
 
     const retrieveMovies = async (page: number) => {
         try {
@@ -38,6 +45,20 @@ const MoviesList = () => {
 
             setMovies(data.movies);
             setCurrentPage(data.page);
+            setEntriesPerPage(data.entries_per_page);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const find = async (query: string, by: "title" | "rated", page: number) => {
+        try {
+            const response = await MovieDataService.find(query, by, page);
+            const data = response.data as MoviesResponse;
+
+            setMovies(data.movies);
+            setCurrentPage(data.page);
+            setEntriesPerPage(data.entries_per_page);
         } catch (e) {
             console.error(e);
         }
@@ -45,9 +66,15 @@ const MoviesList = () => {
 
     useEffect(() => {
         (async () => {
-            await retrieveMovies(currentPage);
+            if (appliedSearch.mode === "findByTitle") {
+                await find(appliedSearch.title, "title", currentPage);
+            } else if (appliedSearch.mode === "findByRating") {
+                await find(appliedSearch.rating, "rated", currentPage);
+            } else {
+                await retrieveMovies(currentPage);
+            }
         })();
-    }, [currentPage]);
+    }, [appliedSearch, currentPage]);
 
 
     const retrieveRatings = async () => {
@@ -65,7 +92,6 @@ const MoviesList = () => {
         })();
     }, []);
 
-
     const onChangeSearchTitle = (e: ChangeEvent<HTMLInputElement>) => {
         setSearchTitle(e.target.value);
     };
@@ -74,34 +100,22 @@ const MoviesList = () => {
         setSearchRating(e.target.value);
     };
 
-    const find = async (query: string, by: "title" | "rated", page: number) => {
-        try {
-            const response = await MovieDataService.find(query, by, page);
-            const data = response.data as MoviesResponse;
-
-            setMovies(data.movies);
-            setCurrentPage(data.page);
-        } catch (e) {
-            console.error(e);
-        }
-    };
     const findByTitle = async () => {
         setCurrentPage(0);
-        await find(searchTitle, "title", 0);
+        setAppliedSearch({ mode: "findByTitle", title: searchTitle.trim(), rating: "" });
     };
+
     const findByRating = async () => {
         setCurrentPage(0);
-
         if (searchRating === "All Ratings") {
-            await retrieveMovies(0);
+            setAppliedSearch({ mode: "", title: "", rating: "" });
         } else {
-            await find(searchRating, "rated", 0);
+            setAppliedSearch({ mode: "findByRating", title: "", rating: searchRating });
         }
     };
 
     return (
-
-            <Container>
+        <Container>
                 <h2 className="my-3">Movie Search</h2>
 
                 <Form className="mb-4">
@@ -155,6 +169,16 @@ const MoviesList = () => {
                     ))
                 }
             </Row>
+
+            {movies.length > 0 && (
+                <div className="mt-4 text-center">
+                    <p> Showing Page: {currentPage}</p>
+                    <Button
+                        variant="link" onClick={() => setCurrentPage((p) => p + 1)}>
+                            Get next {entriesPerPage} results
+                    </Button>
+                </div>
+            )}
         </Container>
     );
 };
